@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "VoriLKiv6xB6xL7YTde34C/P/n8=",
+			"path": "github.com/jrick/logrotate/rotator",
+			"revision": "a93b200c26cbae3bb09dd0dc2c7c7fe1468a034a",
+			"revisionTime": "2017-06-28T18:35:19Z"
+		}
+	],
+	"rootPath": "github.com/blockchainservice"
+}
