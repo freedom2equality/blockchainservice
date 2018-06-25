@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/blockchainservice/common"
-	"github.com/btcsuite/btcd/btcjson"
 )
 
 // todo Reading and writing separation
@@ -29,15 +28,15 @@ var timeZeroVal time.Time
 var (
 	// ErrRPCUnimplemented is an error returned to RPC clients when the
 	// provided command is recognized, but not implemented.
-	ErrRPCUnimplemented = &btcjson.RPCError{
-		Code:    btcjson.ErrRPCUnimplemented,
+	ErrRPCUnimplemented = &common.RPCError{
+		Code:    common.ErrRPCUnimplemented,
 		Message: "Command unimplemented",
 	}
 
 	// ErrRPCNoWallet is an error returned to RPC clients when the provided
 	// command is recognized as a wallet command.
-	ErrRPCNoWallet = &btcjson.RPCError{
-		Code:    btcjson.ErrRPCNoWallet,
+	ErrRPCNoWallet = &common.RPCError{
+		Code:    common.ErrRPCNoWallet,
 		Message: "This implementation does not implement wallet commands",
 	}
 )
@@ -188,8 +187,8 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	var result interface{}
 	var request common.Request
 	if err := json.Unmarshal(body, &request); err != nil {
-		jsonErr = &btcjson.RPCError{
-			Code:    btcjson.ErrRPCParse.Code,
+		jsonErr = &common.RPCError{
+			Code:    common.ErrRPCParse.Code,
 			Message: "Failed to parse request: " + err.Error(),
 		}
 	}
@@ -264,7 +263,7 @@ func (s *RpcServer) standardCmdResult(cmd *parsedRPCCmd, closeChan <-chan struct
 		handler = handleUnimplemented
 		goto handled
 	}
-	return nil, btcjson.ErrRPCMethodNotFound
+	return nil, common.ErrRPCMethodNotFound
 handled:
 
 	return handler(s, cmd.cmd, closeChan)
