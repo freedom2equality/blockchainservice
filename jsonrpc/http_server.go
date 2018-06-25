@@ -79,8 +79,7 @@ func internalRPCError(errStr, context string) *common.RPCError {
 	if context != "" {
 		logStr = context + ": " + errStr
 	}
-	//rpcsLog.Error(logStr)
-	fmt.Println(logStr)
+	log.Error(logStr)
 	return common.NewRPCError(common.ErrRPCInternal.Code, errStr)
 }
 
@@ -163,7 +162,7 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		errMsg := "webserver doesn't support hijacking"
-		//rpcsLog.Warnf(errMsg)
+		log.Warnf(errMsg)
 		errCode := http.StatusInternalServerError
 		http.Error(w, strconv.Itoa(errCode)+" "+errMsg, errCode)
 		return
@@ -171,7 +170,7 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 
 	conn, buf, err := hj.Hijack()
 	if err != nil {
-		//rpcsLog.Warnf("Failed to hijack HTTP connection: %v", err)
+		log.Warnf("Failed to hijack HTTP connection: %v", err)
 		errCode := http.StatusInternalServerError
 		http.Error(w, strconv.Itoa(errCode)+" "+err.Error(), errCode)
 		return
@@ -227,23 +226,23 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	// Marshal the response.
 	msg, err := createMarshalledReply(responseID, result, jsonErr)
 	if err != nil {
-		//rpcsLog.Errorf("Failed to marshal reply: %v", err)
+		log.Errorf("Failed to marshal reply: %v", err)
 		return
 	}
 
 	// Write the response.
 	err = s.writeHTTPResponseHeaders(r, w.Header(), http.StatusOK, buf)
 	if err != nil {
-		//rpcsLog.Error(err)
+		log.Error(err)
 		return
 	}
 	if _, err := buf.Write(msg); err != nil {
-		//rpcsLog.Errorf("Failed to write marshalled reply: %v", err)
+		log.Errorf("Failed to write marshalled reply: %v", err)
 	}
 
 	// Terminate with newline to maintain compatibility with Bitcoin Core.
 	if err := buf.WriteByte('\n'); err != nil {
-		//rpcsLog.Errorf("Failed to append terminating newline to reply: %v", err)
+		log.Errorf("Failed to append terminating newline to reply: %v", err)
 	}
 }
 
