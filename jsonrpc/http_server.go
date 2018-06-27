@@ -98,25 +98,32 @@ func createMarshalledReply(id, result interface{}, replyErr error) ([]byte, erro
 
 // handleUnimplemented is the handler for commands that should ultimately be
 // supported but are not yet implemented.
-func handleUnimplemented(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func handleUnimplemented(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	return nil, ErrRPCUnimplemented
 }
 
 // handleAskWallet is the handler for commands that are recognized as valid, but
 // are unable to answer correctly since it involves wallet state.
 // These commands will be implemented in btcwallet.
-func handleAskWallet(s *RpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+func handleAskWallet(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	return nil, ErrRPCNoWallet
 }
 
-type RpcServer struct {
+// RPCServer struct
+type RPCServer struct {
 	Listeners   []net.Listener
 	wg          sync.WaitGroup
 	statusLines map[int]string
 	statusLock  sync.RWMutex
 }
 
-func (s *RpcServer) Start() {
+// NewRPCServer create rpc instance
+func NewRPCServer(listeners []net.Listener) RPCServer {
+	jsonRPC := RPCServer{Listeners: listeners, statusLines: make(map[int]string)}
+	return jsonRPC
+}
+
+func (s *RPCServer) Start() {
 	rpcServeMux := http.NewServeMux()
 	httpServer := &http.Server{
 		Handler:     rpcServeMux,
@@ -150,7 +157,7 @@ func (s *RpcServer) Start() {
 	}
 }
 
-func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin bool) {
+func (s *RPCServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin bool) {
 	// Read and close the JSON-RPC request body from the caller.
 	body, err := ioutil.ReadAll(r.Body)
 	r.Body.Close()
@@ -185,6 +192,7 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	var jsonErr error
 	var result interface{}
 	var request common.Request
+
 	if err := json.Unmarshal(body, &request); err != nil {
 		jsonErr = &common.RPCError{
 			Code:    common.ErrRPCParse.Code,
@@ -211,16 +219,16 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 			}
 		}()
 
-		if jsonErr == nil {
-			// Attempt to parse the JSON-RPC request into a known concrete
-			// command.
-			parsedCmd := parseCmd(&request)
-			if parsedCmd.err != nil {
-				jsonErr = parsedCmd.err
-			} else {
-				result, jsonErr = s.standardCmdResult(parsedCmd, closeChan)
-			}
+		//if jsonErr == nil {
+		// Attempt to parse the JSON-RPC request into a known concrete
+		// command.
+		parsedCmd := parseCmd(&request)
+		if parsedCmd.err != nil {
+			jsonErr = parsedCmd.err
+		} else {
+			result, jsonErr = s.standardCmdResult(parsedCmd, closeChan)
 		}
+		//}
 	}
 
 	// Marshal the response.
@@ -246,8 +254,7 @@ func (s *RpcServer) jsonRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	}
 }
 
-func (s *RpcServer) standardCmdResult(cmd *parsedRPCCmd, closeChan <-chan struct{}) (interface{}, error) {
-
+func (s *RPCServer) standardCmdResult(cmd *parsedRPCCmd, closeChan <-chan struct{}) (interface{}, error) {
 	handler, ok := rpcHandlers[cmd.method]
 	if ok {
 		goto handled
@@ -268,7 +275,7 @@ handled:
 	return handler(s, cmd.cmd, closeChan)
 }
 
-func (s *RpcServer) writeHTTPResponseHeaders(req *http.Request, headers http.Header, code int, w io.Writer) error {
+func (s *RPCServer) writeHTTPResponseHeaders(req *http.Request, headers http.Header, code int, w io.Writer) error {
 	_, err := io.WriteString(w, s.httpStatusLine(req, code))
 	if err != nil {
 		return err
@@ -283,7 +290,7 @@ func (s *RpcServer) writeHTTPResponseHeaders(req *http.Request, headers http.Hea
 	return err
 }
 
-func (s *RpcServer) httpStatusLine(req *http.Request, code int) string {
+func (s *RPCServer) httpStatusLine(req *http.Request, code int) string {
 	// Fast path:
 	key := code
 	proto11 := req.ProtoAtLeast(1, 1)
