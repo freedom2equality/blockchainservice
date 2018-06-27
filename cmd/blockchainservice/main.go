@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	initLogRotator("./json_rpc.log")
 	setLogLevels("debug")
 	// test jsonrpc
