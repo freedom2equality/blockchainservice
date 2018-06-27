@@ -1,4 +1,4 @@
 package p2p
 
-type conn struct {
+type Conn struct {
 }
