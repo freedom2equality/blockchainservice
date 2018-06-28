@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"fmt"
+	"net"
 )
 
 // Manage handles peer connections and exposes an API to receive incoming messages on `Business`
@@ -33,7 +34,18 @@ func (m *Manage) listenerRoutine(l Listener) {
 			break
 		}
 		fmt.Println(inConn)
+
+		//deal inConn
+		m.inboundPeerConnected(inConn)
 	}
 
 	// cleanup
+}
+
+func (m *Manage) inboundPeerConnected(conn net.Conn) {
+	//sp := newServerPeer(s, false)
+	//sp.isWhitelisted = isWhitelisted(conn.RemoteAddr())
+	//sp.Peer = peer.NewInboundPeer(newPeerConfig(sp))
+	//sp.AssociateConnection(conn)
+	//go s.peerDoneHandler(sp)
 }

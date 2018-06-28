@@ -74,13 +74,6 @@ func (s *Server) listenLoop() {
 
 }
 
-func (s *Server) inboundPeerConnected(conn net.Conn) {
-	//sp := newServerPeer(s, false)
-	//sp.isWhitelisted = isWhitelisted(conn.RemoteAddr())
-	//sp.Peer = peer.NewInboundPeer(newPeerConfig(sp))
-	//sp.AssociateConnection(conn)
-	//go s.peerDoneHandler(sp)
-}
 
 func (s *Server) Connections() <-chan net.Conn {
 	return s.connections
