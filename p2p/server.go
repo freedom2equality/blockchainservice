@@ -5,9 +5,15 @@ import (
 	"sync"
 )
 
+type Listener interface {
+	Connections() <-chan net.Conn
+	//	String() string
+	//	Stop() error
+}
+
 // Config Server options.
 type Config struct {
-	ListenAddr string
+	ListenAddr string //fmt.Sprintf(":%d", port)
 }
 
 type temporary interface {
@@ -20,7 +26,7 @@ func isTemporary(err error) bool {
 	return ok && te.Temporary()
 }
 
-// Server manages all peer connections.
+// Server manages all peer connections. Implements Listener
 type Server struct {
 	Config
 	listener    net.Listener
@@ -28,13 +34,13 @@ type Server struct {
 	connections chan net.Conn
 }
 
-func (s *Server) startListening() error {
+// StartListening start server
+func (s *Server) StartListening() error {
 	listener, err := net.Listen("tcp", s.ListenAddr)
 	if err != nil {
 		return err
 	}
 	s.listener = listener
-	//是否加一锁或者 sync.WaitGroup
 	s.wg.Add(1)
 	go s.listenLoop()
 	return nil
