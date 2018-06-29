@@ -67,13 +67,10 @@ func (s *Server) listenLoop() {
 			}
 			break
 		}
-		// deal conn
-		//go s.inboundPeerConnected(conn)
 		s.connections <- conn
 	}
 
 }
-
 
 func (s *Server) Connections() <-chan net.Conn {
 	return s.connections
