@@ -1,8 +1,11 @@
 package p2p
 
 import (
+	"fmt"
 	"net"
 	"sync"
+
+	"github.com/blockchainservice/p2p/nat"
 )
 
 type Listener interface {
@@ -32,17 +35,43 @@ type Server struct {
 	listener    net.Listener
 	wg          sync.WaitGroup
 	connections chan net.Conn
+	natSpec     string
+	//	extIP       net.IP
 }
 
 // StartListening start server
 func (s *Server) StartListening() error {
+
 	listener, err := net.Listen("tcp", s.ListenAddr)
 	if err != nil {
 		return err
 	}
+	if err = s.mappingExternalNetwork(); err != nil {
+		log.Error(err)
+		return err
+	}
+	// add nat
 	s.listener = listener
 	s.wg.Add(1)
 	go s.listenLoop()
+	return nil
+}
+
+func (s *Server) mappingExternalNetwork() error {
+	natm, err := nat.Parse(s.natSpec)
+	if err != nil {
+	}
+	s.listener.Addr()
+	realaddr := s.listener.Addr().(*net.TCPAddr)
+	if natm != nil {
+		go nat.Map(natm, nil, "tcp", realaddr.Port, realaddr.Port, "ethereum discovery")
+
+		// TODO: react to external IP changes over time.
+		if ext, err := natm.GetExternalAddress(); err == nil {
+			fmt.Println(ext)
+			realaddr = &net.TCPAddr{IP: ext, Port: realaddr.Port}
+		}
+	}
 	return nil
 }
 
