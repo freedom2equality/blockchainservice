@@ -32,8 +32,7 @@ if [ $exist == 0 ]; then
     echo "please install govendor"
     go get -u github.com/kardianos/govendor
 fi
+go get $git_url
 govendor list -v list
-govendor fetch $git_url
-govendor fmt +local
-govendor install +local
+govendor add +external
 govendor list -v list

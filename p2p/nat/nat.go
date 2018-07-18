@@ -7,8 +7,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/ethereum/go-ethereum/log"
 )
 
 // NAT is an interface representing a NAT traversal options for example UPNP or
@@ -77,7 +75,7 @@ const (
 // Map adds a port mapping on m and keeps it alive until c is closed.
 // This function is typically invoked in its own goroutine.
 func Map(m NAT, c chan struct{}, protocol string, extport, intport int, name string) {
-	//log := log.New("proto", protocol, "extport", extport, "intport", intport, "interface", m)
+	log.Debug("proto", protocol, "extport", extport, "intport", intport, "interface", m)
 	refresh := time.NewTimer(mapUpdateInterval)
 	defer func() {
 		refresh.Stop()
